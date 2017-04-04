@@ -91,7 +91,7 @@ trait SigTermHandlerTrait
         }
 
         if (is_array($msg)) {
-            $msg = call_user_func_array($msg[0], array_slice($msg, 1));
+            $msg = call_user_func_array('sprintf', $msg);
         }
 
         $msg = get_class($this) . ': ' . $msg;
