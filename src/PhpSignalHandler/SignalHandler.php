@@ -3,6 +3,9 @@ namespace Sta\PhpSignalHandler;
 
 declare(ticks = 1);
 
+use Sta\PhpSignalHandler\Exception\ExtensionNoLoaded;
+use Sta\PhpSignalHandler\Exception\RequiredFunctionIsDisabled;
+
 class SignalHandler
 {
     /**
@@ -22,9 +25,25 @@ class SignalHandler
     {
     }
 
+    /**
+     * @param $signal
+     * @param Listener $listener
+     * @return bool
+     * @throws ExtensionNoLoaded
+     * @throws RequiredFunctionIsDisabled
+     */
     public static function attach($signal, Listener $listener)
     {
         if (!self::$instance) {
+            if (!extension_loaded('pcntl')) {
+                throw ExtensionNoLoaded::create('pcntl');
+            }
+
+            $disabledFunctions = explode(',', ini_get('disable_functions'));
+            if (in_array('pcntl_signal', $disabledFunctions)) {
+                throw RequiredFunctionIsDisabled::create('pcntl_signal');
+            }
+
             self::$instance = new self();
         }
 
@@ -37,7 +56,7 @@ class SignalHandler
                 $mustRegister[$signalNumber]    = true;
             }
 
-            self::$listeners[$signal][] = $listener;
+            self::$listeners[$signalNumber][] = $listener;
 
         }
 
